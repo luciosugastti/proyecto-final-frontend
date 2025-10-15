@@ -1,33 +1,30 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useChat } from "../context/ChatContext"
 import { Link, useNavigate } from "react-router-dom"
 
 export default function Chat() {
   const [msg, setMsg] = useState("")
   const [showPopup, setShowPopup] = useState(false)
+  const [theme, setTheme] = useState("claro")
 
-  // 1. Obtenemos del contexto todo lo necesario
+  // Obtenemos del contexto todo lo necesario
   const { users, selectedUser, setUsers } = useChat()
-
-  // 2. Buscamos el usuario activo
-  const user = users.find(u => u.id === selectedUser)
-
   const navigate = useNavigate()
 
-  if (!user) {
-    return (
-      <div className="user-not-found">
-        <p>No hay usuario seleccionado...</p>
-      </div>
-    )
-  }
+  // Buscamos el usuario activo
+  const user = users.find(u => u.id === selectedUser)
 
-  // 3. Manejo del input
+  useEffect(() => {
+    // Cargamos el tema guardado (si existe)
+    const savedTheme = localStorage.getItem("theme") || "claro"
+    setTheme(savedTheme)
+    document.body.setAttribute("data-theme", savedTheme)
+  }, [])
+
   const handleChange = (event) => {
     setMsg(event.target.value)
   }
 
-  // 4. Cuando enviamos el formulario
   const handleSubmit = (event) => {
     event.preventDefault()
 
@@ -37,15 +34,13 @@ export default function Chat() {
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     }
 
-    // ✅ Actualizamos el estado de manera INMUTABLE
     const updatedUsers = users.map(u =>
       u.id === user.id
         ? { ...u, messages: [...u.messages, newMessage] }
         : u
     )
 
-    setUsers(updatedUsers) // esto dispara el useEffect del contexto que guarda en localStorage
-
+    setUsers(updatedUsers)
     setMsg("")
   }
 
@@ -54,29 +49,43 @@ export default function Chat() {
     navigate("/")
   }
 
-  const handleShowPopup = () => {
-    setShowPopup(true)
+  const handleShowPopup = () => setShowPopup(true)
+  const handleClosePopup = () => setShowPopup(false)
+
+  const handleThemeChange = (e) => {
+    const selected = e.target.value
+    setTheme(selected)
+    document.body.setAttribute("data-theme", selected)
+    localStorage.setItem("theme", selected)
   }
 
-  const handleClosePopup = () => {
-    setShowPopup(false)
+  if (!user) {
+    return (
+      <div className="user-not-found">
+        <p>No hay usuario seleccionado...</p>
+      </div>
+    )
   }
 
   return (
     <>
-      {
-        showPopup === true && <section className="cont-popup">
+      {/* Popup de configuración */}
+      {showPopup && (
+        <section className="cont-popup">
           <div className="popup">
             <h2>Configuración de Chat</h2>
             <h3>Cambiar tema:</h3>
-            <select name="" id="">
-              <option value="">Claro</option>
-              <option value="">Oscuro</option>
-            </select><br></br>
+            <select value={theme} onChange={handleThemeChange}>
+              <option value="claro">Claro</option>
+              <option value="oscuro">Oscuro</option>
+            </select>
+            <br />
             <button onClick={handleClosePopup}>Cerrar</button>
           </div>
         </section>
-      }
+      )}
+
+      {/* Contenedor principal */}
       <div className="chat">
         <header className="chat-header">
           <div>
@@ -87,7 +96,9 @@ export default function Chat() {
                 className="chat-avatar"
               />
               <strong>{user.name}</strong>
-              {user.lastSeen !== "" && <span className="last-seen">Last seen: {user.lastSeen}</span>}
+              {user.lastSeen !== "" && (
+                <span className="last-seen">Last seen: {user.lastSeen}</span>
+              )}
             </div>
           </div>
 

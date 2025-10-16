@@ -320,6 +320,10 @@ body[data-theme="dark"] .chat-header {
   border-bottom: 1px solid #333;
 }
 
+body[data-theme="dark"] .chat-header img {
+  border-radius: 40px;
+}
+
 body[data-theme="dark"] .chat-messages {
   background-color: #121212;
 }

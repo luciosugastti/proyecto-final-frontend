@@ -295,6 +295,11 @@ body[data-theme="dark"] .sidebar {
   border-right: 1px solid #333;
 }
 
+body[data-theme="dark"] .search {
+  background-color: #1e1e1e;
+  border-right: 1px solid #333;
+}
+
 body[data-theme="dark"] .user {
   background-color: #2a2a2a;
   border-color: #333;

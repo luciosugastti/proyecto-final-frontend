@@ -1,63 +1,18 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useChat } from "../context/ChatContext"
 import { Link, useNavigate } from "react-router-dom"
 
 export default function Chat() {
   const [msg, setMsg] = useState("")
   const [showPopup, setShowPopup] = useState(false)
-  const [theme, setTheme] = useState("claro")
 
-  // Obtenemos del contexto todo lo necesario
+  // 1. Obtenemos del contexto todo lo necesario
   const { users, selectedUser, setUsers } = useChat()
-  const navigate = useNavigate()
 
-  // Buscamos el usuario activo
+  // 2. Buscamos el usuario activo
   const user = users.find(u => u.id === selectedUser)
 
-  useEffect(() => {
-    // Cargamos el tema guardado (si existe)
-    const savedTheme = localStorage.getItem("theme") || "claro"
-    setTheme(savedTheme)
-    document.body.setAttribute("data-theme", savedTheme)
-  }, [])
-
-  const handleChange = (event) => {
-    setMsg(event.target.value)
-  }
-
-  const handleSubmit = (event) => {
-    event.preventDefault()
-
-    const newMessage = {
-      id: crypto.randomUUID(),
-      text: msg,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    }
-
-    const updatedUsers = users.map(u =>
-      u.id === user.id
-        ? { ...u, messages: [...u.messages, newMessage] }
-        : u
-    )
-
-    setUsers(updatedUsers)
-    setMsg("")
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn")
-    navigate("/")
-  }
-
-  const handleShowPopup = () => setShowPopup(true)
-  const handleClosePopup = () => setShowPopup(false)
-
-  const handleThemeChange = (e) => {
-    const selected = e.target.value
-    setTheme(selected)
-    document.body.setAttribute("data-theme", selected)
-    localStorage.setItem("theme", selected)
-  }
+  const navigate = useNavigate()
 
   if (!user) {
     return (
@@ -67,25 +22,61 @@ export default function Chat() {
     )
   }
 
+  // 3. Manejo del input
+  const handleChange = (event) => {
+    setMsg(event.target.value)
+  }
+
+  // 4. Cuando enviamos el formulario
+  const handleSubmit = (event) => {
+    event.preventDefault()
+
+    const newMessage = {
+      id: crypto.randomUUID(),
+      text: msg,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    }
+
+    // ✅ Actualizamos el estado de manera INMUTABLE
+    const updatedUsers = users.map(u =>
+      u.id === user.id
+        ? { ...u, messages: [...u.messages, newMessage] }
+        : u
+    )
+
+    setUsers(updatedUsers) // esto dispara el useEffect del contexto que guarda en localStorage
+
+    setMsg("")
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn")
+    navigate("/")
+  }
+
+  const handleShowPopup = () => {
+    setShowPopup(true)
+  }
+
+  const handleClosePopup = () => {
+    setShowPopup(false)
+  }
+
   return (
     <>
-      {/* Popup de configuración */}
-      {showPopup && (
-        <section className="cont-popup">
+      {
+        showPopup === true && <section className="cont-popup">
           <div className="popup">
             <h2>Configuración de Chat</h2>
             <h3>Cambiar tema:</h3>
-            <select value={theme} onChange={handleThemeChange}>
-              <option value="claro">Claro</option>
-              <option value="oscuro">Oscuro</option>
-            </select>
-            <br />
+            <select name="" id="">
+              <option value="">Claro</option>
+              <option value="">Oscuro</option>
+            </select><br></br>
             <button onClick={handleClosePopup}>Cerrar</button>
           </div>
         </section>
-      )}
-
-      {/* Contenedor principal */}
+      }
       <div className="chat">
         <header className="chat-header">
           <div>
@@ -96,9 +87,7 @@ export default function Chat() {
                 className="chat-avatar"
               />
               <strong>{user.name}</strong>
-              {user.lastSeen !== "" && (
-                <span className="last-seen">Last seen: {user.lastSeen}</span>
-              )}
+              {user.lastSeen !== "" && <span className="last-seen">Last seen: {user.lastSeen}</span>}
             </div>
           </div>
 

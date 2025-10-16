@@ -334,6 +334,10 @@ body[data-theme="dark"] .message .time {
   color: #aaa;
 }
 
+body[data-theme="dark"] .chat-actions button {
+  color: #fafafa;
+}
+
 /* Footer */
 body[data-theme="dark"] .chat-footer {
   background-color: #1f1f1f;
